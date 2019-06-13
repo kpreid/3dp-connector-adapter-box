@@ -1,58 +1,109 @@
+wall_thickness = 0.9;
+
+epsilon = 0.01;
+
+
 main();
 
 
 module main() {
-    connector_adapter_box() {
+    connector_adapter_box(bnc_space, trs_space) {
         bnc_112420_neg();
         
         trs_neg();
     }
+    
+    %position_first_connector(bnc_space) bnc_112420_model();
+    %position_second_connector(trs_space) trs_neg();
 }
 
 
 // Children are two hollows for connector
-module connector_adapter_box() {
+module connector_adapter_box(a_space, b_space) {
     difference() {
         minkowski() {
-            cylinder(d=2, h=2, center=true, $fn=20);
-            interior_volume() children();
+            cylinder(d=wall_thickness * 2, h=wall_thickness * 2, center=true, $fn=20);
+            interior_volume() { children(0); children(1); }
         }
         
-        interior_volume() children();
+        cutout_volume() { children(0); children(1); }
 
+        translate([-50, 0, -50])
         cube([100, 100, 100]);
-    }
-    
-    %union() {
-            children(0);
-            
-            rotate([180, 0, 0])
-            children(1);
     }
         
     module interior_volume() {
         hull() {
+            position_first_connector(a_space)
+            top_half()
             children(0);
             
-            rotate([180, 0, 0])
+            position_second_connector(b_space)
+            top_half()
             children(1);
+        }
+    }
+        
+    module cutout_volume() {
+        union() {
+            position_first_connector(a_space)
+            children(0);
+            
+            position_second_connector(b_space)
+            children(1);
+            
+            // cut the hull
+            interior_volume() { children(0); children(1); }
         }
     }
 }
 
+module position_first_connector(space) {
+    translate([0, 0, -space]) children();
+}
+module position_second_connector(space) {
+    rotate([180, 0, 0])
+    translate([0, 0, -space]) 
+    children();
+}
+
+module top_half() {
+    intersection() {
+        translate([-50, -50, 0])
+        cube([100, 100, 100]);
+        
+        children();
+    }
+}
 
 // Amphenol 112420 per https://www.amphenolrf.com/112420.html
+bnc_shell_length = 8.8;
+bnc_solder_cup_length = 4.3;
+bnc_space = bnc_shell_length + bnc_solder_cup_length + 5;
 module bnc_112420_neg() {
-    thread_length = 8.8;
-    solder_cup_length = 4.3;
-    
     // thread clearance
     // TODO ensure tooth-biting fit
-    cylinder(d=3/8 * 25.4, h=thread_length + solder_cup_length, $fn=30);
+    translate([0, 0, -wall_thickness - epsilon])
+    cylinder(d=3/8 * 25.4, h=bnc_shell_length + bnc_solder_cup_length, $fn=30);
+}
+module bnc_112420_model() {
+    translate([0, 0, -wall_thickness - epsilon]) {
+        cylinder(d=3/8 * 25.4, h=bnc_shell_length, $fn=30);
+        cylinder(d=2.1, h=bnc_shell_length + bnc_solder_cup_length, $fn=30);
+    }
 }
 
 // LJE0352-4R per http://www.fk-industrie.de/downloads/LJE0352s.pdf
+trs_length = 13.5 + 4.0;  // from datasheet
+trs_box_d1 = 11.2;  // asymmetric, max extent is 5.5 from center
+trs_box_d2 = 9.2;  // 9.0 + tolerance added
+trs_space = trs_length + 5;
 module trs_neg() {
     // thread area
+    translate([0, 0, -3.5 + epsilon])
     cylinder(d=8.1, h=3.5, $fn=30);
+    
+    // box area
+    translate([-trs_box_d1 / 2, -trs_box_d2 / 2, 0])
+    cube([trs_box_d1, trs_box_d2, trs_length]);
 }
