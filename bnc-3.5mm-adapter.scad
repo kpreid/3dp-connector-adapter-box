@@ -1,12 +1,21 @@
 wall_thickness = 0.9;
+connection_space = 5;
 
 epsilon = 0.01;
 
 
-main();
+printable();
 
 
-module main() {
+module printable() {
+    rotate([-90, 0, 0]) {
+        design();
+        translate([20, 0, 0]) design();
+    }
+}
+
+
+module design() {
     connector_adapter_box(bnc_space, trs_space) {
         bnc_112420_neg();
         
@@ -15,6 +24,8 @@ module main() {
     
     %position_first_connector(bnc_space) bnc_112420_model();
     %position_second_connector(trs_space) trs_neg();
+    
+    %color("blue") resistor_model();
 }
 
 
@@ -52,8 +63,15 @@ module connector_adapter_box(a_space, b_space) {
             position_second_connector(b_space)
             children(1);
             
-            // cut the hull
-            interior_volume() { children(0); children(1); }
+            // connection working space
+            hull() {
+                intersection() {
+                    cube([100, 100, 20], center=true);  // TODO: magic number
+                    union() {
+                        interior_volume() { children(0); children(1); }
+                    }
+                }
+            }
         }
     }
 }
@@ -79,7 +97,7 @@ module top_half() {
 // Amphenol 112420 per https://www.amphenolrf.com/112420.html
 bnc_shell_length = 8.8;
 bnc_solder_cup_length = 4.3;
-bnc_space = bnc_shell_length + bnc_solder_cup_length + 5;
+bnc_space = bnc_shell_length + bnc_solder_cup_length + connection_space / 2;
 module bnc_112420_neg() {
     // thread clearance
     // TODO ensure tooth-biting fit
@@ -97,7 +115,7 @@ module bnc_112420_model() {
 trs_length = 13.5 + 4.0;  // from datasheet
 trs_box_d1 = 11.2;  // asymmetric, max extent is 5.5 from center
 trs_box_d2 = 9.2;  // 9.0 + tolerance added
-trs_space = trs_length + 5;
+trs_space = trs_length + connection_space / 2;
 module trs_neg() {
     // thread area
     translate([0, 0, -3.5 + epsilon])
@@ -106,4 +124,10 @@ module trs_neg() {
     // box area
     translate([-trs_box_d1 / 2, -trs_box_d2 / 2, 0])
     cube([trs_box_d1, trs_box_d2, trs_length]);
+}
+
+// 1/8 W resistor
+module resistor_model() {
+    cylinder(d=2, h=4, center=true, $fn=12);
+    cylinder(d=0.5, h=4 + 25.4 * 0.2, center=true, $fn=6);
 }
