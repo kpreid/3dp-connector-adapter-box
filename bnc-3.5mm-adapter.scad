@@ -8,7 +8,7 @@ printable();
 
 
 module printable() {
-    rotate([-90, 0, 0]) {
+    rotate([90, 0, 0]) {
         design();
         translate([20, 0, 0]) design();
     }
