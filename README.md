@@ -4,7 +4,7 @@ This repository is for 3D-printable housings for pairs of electronic connectors 
 
 ([Photos at Thingiverse.](https://www.thingiverse.com/thing:3691943))
 
-It's easy to buy an adapter that's BNC (F) to 3.5 mm (M) but I've only found the other way in cable form, so I made my own. It could be used to adapt BNC jacks to accept 3.5 mm patch cables as used in modular synthesizers.
+It's easy to buy an adapter that's BNC (F) to 3.5 mm (M) but I've only found the other way in cable form, so I made my own. It could be used to adapt BNC jacks to accept 3.5 mm patch cables as used in modular synthesizers, or to connect a shortwave receiver antenna to a radio with a BNC connector.
 
 There is enough room in the center to add resistors for a pad network or other similar circuit. It could be shortened by 1 cm if this is not needed.
 
